@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/mi_base_de_datosg?serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieve=True
+    username: genesisquiñonesz
+    password: 1036691336Gq
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
