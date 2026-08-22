@@ -1,6 +1,7 @@
 package com.company.coursemanagement.domain.repository;
 
 import com.company.coursemanagement.domain.model.Enrollment;
+import com.company.coursemanagement.domain.model.EnrollmentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,4 +19,6 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
     // LEFT JOIN FETCH: Consulta relacional por ID de curso
     @Query("SELECT e FROM Enrollment e LEFT JOIN FETCH e.student s LEFT JOIN FETCH e.course c WHERE c.id = :courseId")
     List<Enrollment> findEnrollmentsByCourseIdWithDetails(@Param("courseId") Long courseId);
+
+    long countByCourse_IdAndStatus(Long courseId, EnrollmentStatus enrollmentStatus);
 }

@@ -13,10 +13,12 @@ import com.company.coursemanagement.domain.model.Student;
 import com.company.coursemanagement.domain.repository.CourseRepository;
 import com.company.coursemanagement.domain.repository.EnrollmentRepository;
 import com.company.coursemanagement.domain.repository.StudentRepository;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
 
+ @Service
 public class EnrollmentServiceImpl implements EnrollmentService {
 
     private final EnrollmentRepository enrollmentRepository;
@@ -37,7 +39,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
 
-        long activeCount = enrollmentRepository.countByCourseIdAndStatus(courseId, EnrollmentStatus.ACTIVE);
+        long activeCount = enrollmentRepository.countByCourse_IdAndStatus(courseId, EnrollmentStatus.ACTIVE);
         if (activeCount >= course.getMaxCapacity()) {
             throw new BusinessException("El curso ha alcanzado su capacidad máxima (" + course.getMaxCapacity() + ")");
         }
