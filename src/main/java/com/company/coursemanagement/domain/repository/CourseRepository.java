@@ -1,13 +1,11 @@
 package com.company.coursemanagement.domain.repository;
 
 import com.company.coursemanagement.domain.model.Course;
-import java.util.List;
-import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface CourseRepository {
-    Course save(Course course);
-    Optional<Course> findById(Long id);
-    List<Course> findAll();
-    void deleteById(Long id);
-    boolean existsById(Long id);
+@Repository
+public interface CourseRepository extends JpaRepository<Course, Long> {
+    // Al extender de JpaRepository, Spring ya te regala automáticamente:
+    // save(), findById(), findAll(), deleteById(), existsById() y más.
 }

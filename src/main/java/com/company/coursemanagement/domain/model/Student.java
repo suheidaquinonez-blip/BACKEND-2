@@ -3,48 +3,36 @@ package com.company.coursemanagement.domain.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(
-        name = "students" )
-
+@Table(name = "students")
 public class Student {
 
     @Id
-    @Column(name = "id"
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
     @NotBlank
-    @Column(
-            name = "first_name",
-            nullable = false,
-            length = 100
-    )
+    @Column(name = "first_name", nullable = false, length = 100)
     private String firstName;
 
-    @Column(
-            name = "last_name",
-            nullable = false,
-            length = 100
-    )
+    @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
 
-    @Column(
-            name = "email",
-            nullable = false,
-            unique = true,
-            length = 150
-    )
+    @Column(name = "email", nullable = false, unique = true, length = 150)
     private String email;
 
-    @Column(
-            name = "birth_date"
-    )
+    @Column(name = "birth_date")
     private LocalDate birthDate;
 
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Enrollment> enrollments;
 
+    public Student() {
+    }
 
     public Student(Long id, String firstName, String lastName, String email, LocalDate birthDate) {
         this.id = id;
@@ -92,6 +80,14 @@ public class Student {
 
     public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
+    }
+
+    public List<Enrollment> getEnrollments() {
+        return enrollments;
+    }
+
+    public void setEnrollments(List<Enrollment> enrollments) {
+        this.enrollments = enrollments;
     }
 
     @Override
