@@ -6,18 +6,12 @@ import com.company.coursemanagement.application.dto.StudentDTO;
 import com.company.coursemanagement.application.service.CourseService;
 import com.company.coursemanagement.application.service.EnrollmentService;
 import com.company.coursemanagement.application.service.StudentService;
-<<<<<<< HEAD
-=======
 import org.springframework.stereotype.Component;
->>>>>>> main
 
 import java.time.LocalDate;
 import java.util.Scanner;
 
-<<<<<<< HEAD
-=======
 @Component
->>>>>>> main
 public class ConsoleMenu {
 
     private final StudentService studentService;
