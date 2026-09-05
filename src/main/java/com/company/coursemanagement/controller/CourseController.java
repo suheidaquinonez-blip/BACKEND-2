@@ -1,38 +1,36 @@
 package com.company.coursemanagement.controller;
 
-import com.company.coursemanagement.application.dto.StudentDTO;
-import com.company.coursemanagement.application.service.impl.StudentServiceImpl;
+import com.company.coursemanagement.application.dto.CourseDTO;
+import com.company.coursemanagement.application.service.impl.CourseServiceImpl;
 import com.company.coursemanagement.domain.exception.BusinessException;
-import com.company.coursemanagement.domain.exception.StudentNotFoundException;
+import com.company.coursemanagement.domain.exception.CourseNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/students")
-public class StudentController {
+@RequestMapping("/courses")
+public class CourseController {
+    private final CourseServiceImpl courseServiceImpl;
 
-    private final StudentServiceImpl studentServiceimpl;
-
-    public StudentController(StudentServiceImpl studentService) {
-        this.studentServiceimpl = studentService;
-
+    public CourseController(CourseServiceImpl courseServiceImpl) {
+        this.courseServiceImpl = courseServiceImpl;
     }
 
     @GetMapping
-    public ResponseEntity<Object> getAllStudents() {
+    public ResponseEntity<Object> getAllCourses() {
         try {
-            return ResponseEntity.ok(studentServiceimpl.findAll());
+            return ResponseEntity.ok(courseServiceImpl.findAll());
         } catch (BusinessException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    @GetMapping("/{studentId}")
-    public ResponseEntity<Object> getById(@PathVariable Long studentId) {
+    @GetMapping("/{courseId}")
+    public ResponseEntity<Object> getById(@PathVariable Long courseId) {
         try {
-            return ResponseEntity.ok(studentServiceimpl.findById(studentId));
-        } catch (StudentNotFoundException e) {
+            return ResponseEntity.ok(courseServiceImpl.findById(courseId));
+        } catch (CourseNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (BusinessException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -40,9 +38,9 @@ public class StudentController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> addStudent(@RequestBody StudentDTO studentDTO) {
+    public ResponseEntity<Object> addCourse(@RequestBody CourseDTO courseDTO) {
         try {
-            StudentDTO created = studentServiceimpl.create(studentDTO);
+            CourseDTO created = courseServiceImpl.create(courseDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
         } catch (BusinessException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
@@ -51,12 +49,12 @@ public class StudentController {
         }
     }
 
-    @PutMapping("/{studentId}")
-    public ResponseEntity<Object> update(@PathVariable Long studentId, @RequestBody StudentDTO studentDTO) {
+    @PutMapping("/{courseId}")
+    public ResponseEntity<Object> update(@PathVariable Long courseId, @RequestBody CourseDTO courseDTO) {
         try {
-            StudentDTO updated = studentServiceimpl.update(studentId, studentDTO);
+            CourseDTO updated = courseServiceImpl.update(courseId, courseDTO);
             return ResponseEntity.ok(updated);
-        } catch (StudentNotFoundException e) {
+        } catch (CourseNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (BusinessException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
@@ -65,12 +63,12 @@ public class StudentController {
         }
     }
 
-    @DeleteMapping("/{studentId}")
-    public ResponseEntity<Object> delete(@PathVariable Long studentId) {
+    @DeleteMapping("/{courseId}")
+    public ResponseEntity<Object> delete(@PathVariable Long courseId) {
         try {
-            studentServiceimpl.delete(studentId);
+            courseServiceImpl.delete(courseId);
             return ResponseEntity.noContent().build();
-        } catch (StudentNotFoundException e) {
+        } catch (CourseNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (BusinessException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
