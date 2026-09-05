@@ -1,13 +1,16 @@
+
 package com.company.coursemanagement.application.service.impl;
 
 import com.company.coursemanagement.application.dto.CourseDTO;
 import com.company.coursemanagement.application.service.CourseService;
+import com.company.coursemanagement.domain.exception.BusinessException;
 import com.company.coursemanagement.domain.exception.CourseNotFoundException;
 import com.company.coursemanagement.domain.model.Course;
 import com.company.coursemanagement.domain.repository.CourseRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
 @Service
 public class CourseServiceImpl implements CourseService {
 
@@ -19,7 +22,11 @@ public class CourseServiceImpl implements CourseService {
 
     @Override
     public CourseDTO create(CourseDTO dto) {
-        Course course = new Course(dto.getId(), dto.getCode(), dto.getName(), dto.getDescription(), dto.getMaxCapacity());
+        validate(dto);
+        if (courseRepository.existsByCode(dto.getCode())) {
+            throw new BusinessException("Ya existe un curso con el código: " + dto.getCode());
+        }
+        Course course = new Course(null, dto.getCode(), dto.getName(), dto.getDescription(), dto.getMaxCapacity());
         Course saved = courseRepository.save(course);
         return toDTO(saved);
     }
@@ -43,6 +50,14 @@ public class CourseServiceImpl implements CourseService {
         if (!courseRepository.existsById(id)) {
             throw new CourseNotFoundException(id);
         }
+        validate(dto);
+
+        courseRepository.findByCode(dto.getCode())
+                .filter(existing -> !existing.getId().equals(id))
+                .ifPresent(existing -> {
+                    throw new BusinessException("Ya existe un curso con el código: " + dto.getCode());
+                });
+
         Course course = new Course(id, dto.getCode(), dto.getName(), dto.getDescription(), dto.getMaxCapacity());
         Course updated = courseRepository.save(course);
         return toDTO(updated);
@@ -54,6 +69,21 @@ public class CourseServiceImpl implements CourseService {
             throw new CourseNotFoundException(id);
         }
         courseRepository.deleteById(id);
+    }
+
+    private void validate(CourseDTO dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("El curso no puede ser nulo");
+        }
+        if (dto.getCode() == null || dto.getCode().isBlank()) {
+            throw new IllegalArgumentException("El código del curso es obligatorio");
+        }
+        if (dto.getName() == null || dto.getName().isBlank()) {
+            throw new IllegalArgumentException("El nombre del curso es obligatorio");
+        }
+        if (dto.getMaxCapacity() == null || dto.getMaxCapacity() <= 0) {
+            throw new IllegalArgumentException("La capacidad máxima debe ser mayor a 0");
+        }
     }
 
     private CourseDTO toDTO(Course course) {

@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 
- @Service
+@Service
 public class EnrollmentServiceImpl implements EnrollmentService {
 
     private final EnrollmentRepository enrollmentRepository;
@@ -33,11 +33,24 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
     @Override
     public EnrollmentDTO enrollStudent(Long studentId, Long courseId) {
+        if (studentId == null) {
+            throw new IllegalArgumentException("El id del estudiante es obligatorio");
+        }
+        if (courseId == null) {
+            throw new IllegalArgumentException("El id del curso es obligatorio");
+        }
+
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new StudentNotFoundException(studentId));
 
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
+
+        boolean yaInscrito = enrollmentRepository.findEnrollmentsByStudentIdWithDetails(studentId).stream()
+                .anyMatch(e -> e.getCourseId().equals(courseId) && e.getStatus() == EnrollmentStatus.ACTIVE);
+        if (yaInscrito) {
+            throw new BusinessException("El estudiante ya está inscrito activamente en este curso");
+        }
 
         long activeCount = enrollmentRepository.countByCourse_IdAndStatus(courseId, EnrollmentStatus.ACTIVE);
         if (activeCount >= course.getMaxCapacity()) {

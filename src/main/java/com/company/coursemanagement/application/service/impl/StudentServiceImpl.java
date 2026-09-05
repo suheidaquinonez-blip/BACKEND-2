@@ -2,12 +2,13 @@ package com.company.coursemanagement.application.service.impl;
 
 import com.company.coursemanagement.application.dto.StudentDTO;
 import com.company.coursemanagement.application.service.StudentService;
+import com.company.coursemanagement.domain.exception.BusinessException;
+import com.company.coursemanagement.domain.exception.StudentNotFoundException;
 import com.company.coursemanagement.domain.model.Student;
 import com.company.coursemanagement.domain.repository.StudentRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class StudentServiceImpl implements StudentService {
@@ -20,8 +21,9 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public StudentDTO create(StudentDTO dto) {
-        if (dto == null) {
-            throw new IllegalArgumentException("StudentDTO cannot be null");
+        validate(dto);
+        if (studentRepository.existsByEmail(dto.getEmail())) {
+            throw new BusinessException("Ya existe un estudiante con el email: " + dto.getEmail());
         }
         Student student = toEntity(dto);
         Student saved = studentRepository.save(student);
@@ -31,10 +33,10 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public StudentDTO findById(Long id) {
         if (id == null) {
-            throw new IllegalArgumentException("Id cannot be null");
+            throw new IllegalArgumentException("El id no puede ser nulo");
         }
         Student student = studentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Student not found with id: " + id));
+                .orElseThrow(() -> new StudentNotFoundException(id));
         return toDTO(student);
     }
 
@@ -49,7 +51,14 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public StudentDTO update(Long id, StudentDTO dto) {
         Student existing = studentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Student not found with id: " + id));
+                .orElseThrow(() -> new StudentNotFoundException(id));
+
+        validate(dto);
+
+        if (!existing.getEmail().equalsIgnoreCase(dto.getEmail())
+                && studentRepository.existsByEmail(dto.getEmail())) {
+            throw new BusinessException("Ya existe un estudiante con el email: " + dto.getEmail());
+        }
 
         existing.setFirstName(dto.getFirstName());
         existing.setLastName(dto.getLastName());
@@ -58,17 +67,34 @@ public class StudentServiceImpl implements StudentService {
 
         Student updated = studentRepository.save(existing);
         return toDTO(updated);
+
     }
 
     @Override
     public void delete(Long id) {
         if (!studentRepository.existsById(id)) {
-            throw new IllegalArgumentException("Student not found with id: " + id);
+            throw new StudentNotFoundException(id);
         }
         studentRepository.deleteById(id);
     }
 
-    // ---- Metodos de conversion (mapeo) ----
+    private void validate(StudentDTO dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("El estudiante no puede ser nulo");
+        }
+        if (dto.getFirstName() == null || dto.getFirstName().isBlank()) {
+            throw new IllegalArgumentException("El nombre es obligatorio");
+        }
+        if (dto.getLastName() == null || dto.getLastName().isBlank()) {
+            throw new IllegalArgumentException("El apellido es obligatorio");
+        }
+        if (dto.getEmail() == null || dto.getEmail().isBlank()) {
+            throw new IllegalArgumentException("El email es obligatorio");
+        }
+        if (!dto.getEmail().matches("^[\\w.+-]+@[\\w-]+\\.[a-zA-Z]{2,}$")) {
+            throw new IllegalArgumentException("El email no tiene un formato válido");
+        }
+    }
 
     private StudentDTO toDTO(Student student) {
         return new StudentDTO(
