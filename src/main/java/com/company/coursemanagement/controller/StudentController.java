@@ -4,6 +4,7 @@ import com.company.coursemanagement.application.dto.StudentDTO;
 import com.company.coursemanagement.application.service.impl.StudentServiceImpl;
 import com.company.coursemanagement.domain.exception.BusinessException;
 import com.company.coursemanagement.domain.exception.StudentNotFoundException;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -52,7 +53,7 @@ public class StudentController {
     }
 
     @PutMapping("/{studentId}")
-    public ResponseEntity<Object> update(@PathVariable Long studentId, @RequestBody StudentDTO studentDTO) {
+    public ResponseEntity<Object> update(@PathVariable Long studentId,@Valid  @RequestBody StudentDTO studentDTO) {
         try {
             StudentDTO updated = studentServiceimpl.update(studentId, studentDTO);
             return ResponseEntity.ok(updated);
