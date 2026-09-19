@@ -1,11 +1,13 @@
 package com.company.coursemanagement.application.service;
 
-import com.company.coursemanagement.application.dto.EnrollmentDTO;
+import com.company.coursemanagement.application.dto.CreateEnrollmentDTO;
+import com.company.coursemanagement.application.dto.response.EnrollmentResponseDto;
+
 import java.util.List;
 
 public interface EnrollmentService {
-    EnrollmentDTO enrollStudent(Long studentId, Long courseId);
-    EnrollmentDTO findById(Long id);
-    List<EnrollmentDTO> findAll();
+    EnrollmentResponseDto enrollStudent(CreateEnrollmentDTO dto);
+    EnrollmentResponseDto findById(Long id);
+    List<EnrollmentResponseDto> findAll();
     void cancelEnrollment(Long id);
 }

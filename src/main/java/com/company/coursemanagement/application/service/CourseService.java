@@ -1,12 +1,15 @@
 package com.company.coursemanagement.application.service;
 
-import com.company.coursemanagement.application.dto.CourseDTO;
+import com.company.coursemanagement.application.dto.CreateCourseDTO;
+import com.company.coursemanagement.application.dto.UpdateCourseDTO;
+import com.company.coursemanagement.application.dto.response.CourseResponseDto;
+
 import java.util.List;
 
 public interface CourseService {
-    CourseDTO create(CourseDTO dto);
-    CourseDTO findById(Long id);
-    List<CourseDTO> findAll();
-    CourseDTO update(Long id, CourseDTO dto);
+    CourseResponseDto create(CreateCourseDTO dto);
+    CourseResponseDto findById(Long id);
+    List<CourseResponseDto> findAll();
+    CourseResponseDto update(Long id, UpdateCourseDTO dto);
     void delete(Long id);
 }

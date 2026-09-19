@@ -1,9 +1,10 @@
-
 package com.company.coursemanagement.application.service.impl;
 
-import com.company.coursemanagement.application.dto.CourseDTO;
+import com.company.coursemanagement.application.dto.CreateCourseDTO;
+import com.company.coursemanagement.application.dto.UpdateCourseDTO;
+import com.company.coursemanagement.application.dto.response.CourseResponseDto;
 import com.company.coursemanagement.application.service.CourseService;
-import com.company.coursemanagement.domain.exception.BusinessException;
+import com.company.coursemanagement.domain.exception.CourseCodeAlreadyExistsException;
 import com.company.coursemanagement.domain.exception.CourseNotFoundException;
 import com.company.coursemanagement.domain.model.Course;
 import com.company.coursemanagement.domain.repository.CourseRepository;
@@ -21,46 +22,45 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public CourseDTO create(CourseDTO dto) {
-        validate(dto);
-        if (courseRepository.existsByCode(dto.getCode())) {
-            throw new BusinessException("Ya existe un curso con el código: " + dto.getCode());
+    public CourseResponseDto create(CreateCourseDTO dto) {
+        if (courseRepository.existsByCode(dto.code())) {
+            throw new CourseCodeAlreadyExistsException(dto.code());
         }
-        Course course = new Course(null, dto.getCode(), dto.getName(), dto.getDescription(), dto.getMaxCapacity());
+
+        Course course = new Course(null, dto.code(), dto.name(), dto.description(), dto.maxCapacity());
         Course saved = courseRepository.save(course);
-        return toDTO(saved);
+        return CourseResponseDto.from(saved);
     }
 
     @Override
-    public CourseDTO findById(Long id) {
+    public CourseResponseDto findById(Long id) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new CourseNotFoundException(id));
-        return toDTO(course);
+        return CourseResponseDto.from(course);
     }
 
     @Override
-    public List<CourseDTO> findAll() {
+    public List<CourseResponseDto> findAll() {
         return courseRepository.findAll().stream()
-                .map(this::toDTO)
+                .map(CourseResponseDto::from)
                 .toList();
     }
 
     @Override
-    public CourseDTO update(Long id, CourseDTO dto) {
+    public CourseResponseDto update(Long id, UpdateCourseDTO dto) {
         if (!courseRepository.existsById(id)) {
             throw new CourseNotFoundException(id);
         }
-        validate(dto);
 
-        courseRepository.findByCode(dto.getCode())
+        courseRepository.findByCode(dto.code())
                 .filter(existing -> !existing.getId().equals(id))
                 .ifPresent(existing -> {
-                    throw new BusinessException("Ya existe un curso con el código: " + dto.getCode());
+                    throw new CourseCodeAlreadyExistsException(dto.code());
                 });
 
-        Course course = new Course(id, dto.getCode(), dto.getName(), dto.getDescription(), dto.getMaxCapacity());
+        Course course = new Course(id, dto.code(), dto.name(), dto.description(), dto.maxCapacity());
         Course updated = courseRepository.save(course);
-        return toDTO(updated);
+        return CourseResponseDto.from(updated);
     }
 
     @Override
@@ -69,24 +69,5 @@ public class CourseServiceImpl implements CourseService {
             throw new CourseNotFoundException(id);
         }
         courseRepository.deleteById(id);
-    }
-
-    private void validate(CourseDTO dto) {
-        if (dto == null) {
-            throw new IllegalArgumentException("El curso no puede ser nulo");
-        }
-        if (dto.getCode() == null || dto.getCode().isBlank()) {
-            throw new IllegalArgumentException("El código del curso es obligatorio");
-        }
-        if (dto.getName() == null || dto.getName().isBlank()) {
-            throw new IllegalArgumentException("El nombre del curso es obligatorio");
-        }
-        if (dto.getMaxCapacity() == null || dto.getMaxCapacity() <= 0) {
-            throw new IllegalArgumentException("La capacidad máxima debe ser mayor a 0");
-        }
-    }
-
-    private CourseDTO toDTO(Course course) {
-        return new CourseDTO(course.getId(), course.getCode(), course.getName(), course.getDescription(), course.getMaxCapacity());
     }
 }

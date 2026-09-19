@@ -1,6 +1,6 @@
 package com.company.coursemanagement.domain.exception;
 
-public class StudentNotFoundException extends BusinessException {
+public class StudentNotFoundException extends ResourceNotFoundException {
     public StudentNotFoundException(Long id) {
         super("Student not found: " + id);
     }

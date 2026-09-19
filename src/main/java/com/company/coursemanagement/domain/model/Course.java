@@ -1,7 +1,6 @@
 package com.company.coursemanagement.domain.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Objects;
 
@@ -14,11 +13,9 @@ public class Course {
     @Column(name = "id")
     private Long id;
 
-    @NotBlank
     @Column(name = "code", nullable = false, unique = true, length = 20)
     private String code;
 
-    @NotBlank
     @Column(name = "name", nullable = false, length = 150)
     private String name;
 

@@ -1,8 +1,13 @@
 package com.company.coursemanagement.presentation;
 
-import com.company.coursemanagement.application.dto.CourseDTO;
-import com.company.coursemanagement.application.dto.EnrollmentDTO;
-import com.company.coursemanagement.application.dto.StudentDTO;
+import com.company.coursemanagement.application.dto.CreateCourseDTO;
+import com.company.coursemanagement.application.dto.CreateEnrollmentDTO;
+import com.company.coursemanagement.application.dto.CreateStudentDTO;
+import com.company.coursemanagement.application.dto.UpdateCourseDTO;
+import com.company.coursemanagement.application.dto.UpdateStudentDto;
+import com.company.coursemanagement.application.dto.response.CourseResponseDto;
+import com.company.coursemanagement.application.dto.response.EnrollmentResponseDto;
+import com.company.coursemanagement.application.dto.response.StudentResponseDto;
 import com.company.coursemanagement.application.service.CourseService;
 import com.company.coursemanagement.application.service.EnrollmentService;
 import com.company.coursemanagement.application.service.StudentService;
@@ -88,16 +93,16 @@ public class ConsoleMenu {
         System.out.print("Fecha Nacimiento (YYYY-MM-DD): ");
         LocalDate birthDate = LocalDate.parse(scanner.nextLine());
 
-        StudentDTO dto = new StudentDTO(null, firstName, lastName, email, birthDate);
-        StudentDTO created = studentService.create(dto);
-        System.out.println("✅ Estudiante creado. ID: " + created.getId());
+        CreateStudentDTO dto = new CreateStudentDTO(firstName, lastName, email, birthDate);
+        StudentResponseDto created = studentService.create(dto);
+        System.out.println("✅ Estudiante creado. ID: " + created.id());
     }
 
     private void findStudentById() {
         System.out.print("ID del estudiante: ");
         Long id = (long) readInt();
-        StudentDTO student = studentService.findById(id);
-        System.out.println("Encontrado: " + student.getFirstName() + " " + student.getLastName());
+        StudentResponseDto student = studentService.findById(id);
+        System.out.println("Encontrado: " + student.firstName() + " " + student.lastName());
     }
 
     private void listAllStudents() {
@@ -106,7 +111,7 @@ public class ConsoleMenu {
             System.out.println("No hay estudiantes.");
             return;
         }
-        students.forEach(s -> System.out.println("[" + s.getId() + "] " + s.getFirstName() + " " + s.getLastName()));
+        students.forEach(s -> System.out.println("[" + s.id() + "] " + s.firstName() + " " + s.lastName()));
     }
 
     private void updateStudent() {
@@ -121,7 +126,7 @@ public class ConsoleMenu {
         System.out.print("Nueva Fecha Nacimiento (YYYY-MM-DD): ");
         LocalDate birthDate = LocalDate.parse(scanner.nextLine());
 
-        StudentDTO dto = new StudentDTO(id, firstName, lastName, email, birthDate);
+        UpdateStudentDto dto = new UpdateStudentDto(firstName, lastName, email, birthDate);
         studentService.update(id, dto);
         System.out.println("✅ Estudiante actualizado.");
     }
@@ -173,16 +178,16 @@ public class ConsoleMenu {
         System.out.print("Capacidad Máxima: ");
         Integer maxCapacity = readInt();
 
-        CourseDTO dto = new CourseDTO(null, code, name, description, maxCapacity);
-        CourseDTO created = courseService.create(dto);
-        System.out.println("✅ Curso creado. ID: " + created.getId());
+        CreateCourseDTO dto = new CreateCourseDTO(code, name, description, maxCapacity);
+        CourseResponseDto created = courseService.create(dto);
+        System.out.println("✅ Curso creado. ID: " + created.id());
     }
 
     private void findCourseById() {
         System.out.print("ID del curso: ");
         Long id = (long) readInt();
-        CourseDTO course = courseService.findById(id);
-        System.out.println("Encontrado: " + course.getName());
+        CourseResponseDto course = courseService.findById(id);
+        System.out.println("Encontrado: " + course.name());
     }
 
     private void listAllCourses() {
@@ -191,7 +196,7 @@ public class ConsoleMenu {
             System.out.println("No hay cursos.");
             return;
         }
-        courses.forEach(c -> System.out.println("[" + c.getId() + "] " + c.getName()));
+        courses.forEach(c -> System.out.println("[" + c.id() + "] " + c.name()));
     }
 
     private void updateCourse() {
@@ -206,7 +211,7 @@ public class ConsoleMenu {
         System.out.print("Nueva Capacidad: ");
         Integer maxCapacity = readInt();
 
-        CourseDTO dto = new CourseDTO(id, code, name, description, maxCapacity);
+        UpdateCourseDTO dto = new UpdateCourseDTO(code, name, description, maxCapacity);
         courseService.update(id, dto);
         System.out.println("✅ Curso actualizado.");
     }
@@ -252,15 +257,16 @@ public class ConsoleMenu {
         System.out.print("ID Curso: ");
         Long courseId = (long) readInt();
 
-        EnrollmentDTO created = enrollmentService.enrollStudent(studentId, courseId);
-        System.out.println("✅ Matrícula exitosa. ID: " + created.getId());
+        CreateEnrollmentDTO dto = new CreateEnrollmentDTO(studentId, courseId, null);
+        EnrollmentResponseDto created = enrollmentService.enrollStudent(dto);
+        System.out.println("✅ Matrícula exitosa. ID: " + created.id());
     }
 
     private void findEnrollmentById() {
         System.out.print("ID Matrícula: ");
         Long id = (long) readInt();
-        EnrollmentDTO enrollment = enrollmentService.findById(id);
-        System.out.println("Encontrada: ID " + enrollment.getId() + " - Estado: " + enrollment.getStatus());
+        EnrollmentResponseDto enrollment = enrollmentService.findById(id);
+        System.out.println("Encontrada: ID " + enrollment.id() + " - Estado: " + enrollment.status());
     }
 
     private void listAllEnrollments() {
@@ -269,7 +275,7 @@ public class ConsoleMenu {
             System.out.println("No hay matrículas.");
             return;
         }
-        enrollments.forEach(e -> System.out.println("[" + e.getId() + "] Estudiante: " + e.getStudentId() + " | Curso: " + e.getCourseId()));
+        enrollments.forEach(e -> System.out.println("[" + e.id() + "] Estudiante: " + e.studentId() + " | Curso: " + e.courseId()));
     }
 
     private void cancelEnrollment() {

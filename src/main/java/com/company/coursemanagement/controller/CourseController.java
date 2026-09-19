@@ -1,77 +1,53 @@
 package com.company.coursemanagement.controller;
 
-import com.company.coursemanagement.application.dto.CourseDTO;
-import com.company.coursemanagement.application.service.impl.CourseServiceImpl;
-import com.company.coursemanagement.domain.exception.BusinessException;
-import com.company.coursemanagement.domain.exception.CourseNotFoundException;
+import com.company.coursemanagement.application.dto.CreateCourseDTO;
+import com.company.coursemanagement.application.dto.UpdateCourseDTO;
+import com.company.coursemanagement.application.dto.response.CourseResponseDto;
+import com.company.coursemanagement.application.service.CourseService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/courses")
 public class CourseController {
-    private final CourseServiceImpl courseServiceImpl;
 
-    public CourseController(CourseServiceImpl courseServiceImpl) {
-        this.courseServiceImpl = courseServiceImpl;
+    private final CourseService courseService;
+
+    public CourseController(CourseService courseService) {
+        this.courseService = courseService;
     }
 
     @GetMapping
-    public ResponseEntity<Object> getAllCourses() {
-        try {
-            return ResponseEntity.ok(courseServiceImpl.findAll());
-        } catch (BusinessException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<List<CourseResponseDto>> getAllCourses() {
+        return ResponseEntity.ok(courseService.findAll());
     }
 
     @GetMapping("/{courseId}")
-    public ResponseEntity<Object> getById(@PathVariable Long courseId) {
-        try {
-            return ResponseEntity.ok(courseServiceImpl.findById(courseId));
-        } catch (CourseNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (BusinessException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<CourseResponseDto> getById(@PathVariable Long courseId) {
+        return ResponseEntity.ok(courseService.findById(courseId));
     }
 
     @PostMapping
-    public ResponseEntity<Object> addCourse(@RequestBody CourseDTO courseDTO) {
-        try {
-            CourseDTO created = courseServiceImpl.create(courseDTO);
-            return ResponseEntity.status(HttpStatus.CREATED).body(created);
-        } catch (BusinessException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<CourseResponseDto> create(@Valid @RequestBody CreateCourseDTO dto) {
+        CourseResponseDto created = courseService.create(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{courseId}")
-    public ResponseEntity<Object> update(@PathVariable Long courseId, @RequestBody CourseDTO courseDTO) {
-        try {
-            CourseDTO updated = courseServiceImpl.update(courseId, courseDTO);
-            return ResponseEntity.ok(updated);
-        } catch (CourseNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (BusinessException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<CourseResponseDto> update(
+            @PathVariable Long courseId,
+            @Valid @RequestBody UpdateCourseDTO dto) {
+
+        return ResponseEntity.ok(courseService.update(courseId, dto));
     }
 
     @DeleteMapping("/{courseId}")
-    public ResponseEntity<Object> delete(@PathVariable Long courseId) {
-        try {
-            courseServiceImpl.delete(courseId);
-            return ResponseEntity.noContent().build();
-        } catch (CourseNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (BusinessException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<Void> delete(@PathVariable Long courseId) {
+        courseService.delete(courseId);
+        return ResponseEntity.noContent().build();
     }
 }
