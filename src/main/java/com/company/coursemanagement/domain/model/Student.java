@@ -1,7 +1,6 @@
 package com.company.coursemanagement.domain.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
@@ -15,7 +14,6 @@ public class Student {
     @Column(name = "id")
     private Long id;
 
-    @NotBlank
     @Column(name = "first_name", nullable = false, length = 100)
     private String firstName;
 

@@ -1,13 +1,17 @@
 package com.company.coursemanagement.application.service.impl;
 
-import com.company.coursemanagement.application.dto.StudentDTO;
+import com.company.coursemanagement.application.dto.CreateStudentDTO;
+import com.company.coursemanagement.application.dto.PatchStudentDto;
+import com.company.coursemanagement.application.dto.UpdateStudentDto;
+import com.company.coursemanagement.application.dto.response.StudentResponseDto;
 import com.company.coursemanagement.application.service.StudentService;
+import com.company.coursemanagement.domain.exception.StudentEmailAlreadyExistsException;
+import com.company.coursemanagement.domain.exception.StudentNotFoundException;
 import com.company.coursemanagement.domain.model.Student;
 import com.company.coursemanagement.domain.repository.StudentRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class StudentServiceImpl implements StudentService {
@@ -19,73 +23,89 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public StudentDTO create(StudentDTO dto) {
-        if (dto == null) {
-            throw new IllegalArgumentException("StudentDTO cannot be null");
+    public StudentResponseDto create(CreateStudentDTO dto) {
+        if (studentRepository.existsByEmail(dto.email())) {
+            throw new StudentEmailAlreadyExistsException(dto.email());
         }
-        Student student = toEntity(dto);
+
+        Student student = new Student();
+        student.setFirstName(dto.firstName());
+        student.setLastName(dto.lastName());
+        student.setEmail(dto.email());
+        student.setBirthDate(dto.birthDate());
+
         Student saved = studentRepository.save(student);
-        return toDTO(saved);
+        return StudentResponseDto.from(saved);
     }
 
     @Override
-    public StudentDTO findById(Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("Id cannot be null");
-        }
+    public StudentResponseDto findById(Long id) {
         Student student = studentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Student not found with id: " + id));
-        return toDTO(student);
+                .orElseThrow(() -> new StudentNotFoundException(id));
+        return StudentResponseDto.from(student);
     }
 
     @Override
-    public List<StudentDTO> findAll() {
+    public List<StudentResponseDto> findAll() {
         return studentRepository.findAll()
                 .stream()
-                .map(this::toDTO)
+                .map(StudentResponseDto::from)
                 .toList();
     }
 
     @Override
-    public StudentDTO update(Long id, StudentDTO dto) {
+    public StudentResponseDto update(Long id, UpdateStudentDto dto) {
         Student existing = studentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Student not found with id: " + id));
+                .orElseThrow(() -> new StudentNotFoundException(id));
 
-        existing.setFirstName(dto.getFirstName());
-        existing.setLastName(dto.getLastName());
-        existing.setEmail(dto.getEmail());
-        existing.setBirthDate(dto.getBirthDate());
+        if (!existing.getEmail().equalsIgnoreCase(dto.email())
+                && studentRepository.existsByEmail(dto.email())) {
+            throw new StudentEmailAlreadyExistsException(dto.email());
+        }
+
+        existing.setFirstName(dto.firstName());
+        existing.setLastName(dto.lastName());
+        existing.setEmail(dto.email());
+        existing.setBirthDate(dto.birthDate());
 
         Student updated = studentRepository.save(existing);
-        return toDTO(updated);
+        return StudentResponseDto.from(updated);
+    }
+
+    @Override
+    public StudentResponseDto patch(Long id, PatchStudentDto dto) {
+        Student existing = studentRepository.findById(id)
+                .orElseThrow(() -> new StudentNotFoundException(id));
+
+        if (dto.firstName() != null) {
+            existing.setFirstName(dto.firstName());
+        }
+
+        if (dto.lastName() != null) {
+            existing.setLastName(dto.lastName());
+        }
+
+        if (dto.email() != null) {
+            if (!existing.getEmail().equalsIgnoreCase(dto.email())
+                    && studentRepository.existsByEmail(dto.email())) {
+                throw new StudentEmailAlreadyExistsException(dto.email());
+            }
+            existing.setEmail(dto.email());
+        }
+
+        if (dto.birthDate() != null) {
+            existing.setBirthDate(dto.birthDate());
+        }
+
+        Student updated = studentRepository.save(existing);
+        return StudentResponseDto.from(updated);
     }
 
     @Override
     public void delete(Long id) {
         if (!studentRepository.existsById(id)) {
-            throw new IllegalArgumentException("Student not found with id: " + id);
+            throw new StudentNotFoundException(id);
         }
         studentRepository.deleteById(id);
-    }
-
-    // ---- Metodos de conversion (mapeo) ----
-
-    private StudentDTO toDTO(Student student) {
-        return new StudentDTO(
-                student.getId(),
-                student.getFirstName(),
-                student.getLastName(),
-                student.getEmail(),
-                student.getBirthDate()
-        );
-    }
-
-    private Student toEntity(StudentDTO dto) {
-        Student student = new Student();
-        student.setFirstName(dto.getFirstName());
-        student.setLastName(dto.getLastName());
-        student.setEmail(dto.getEmail());
-        student.setBirthDate(dto.getBirthDate());
-        return student;
     }
 }

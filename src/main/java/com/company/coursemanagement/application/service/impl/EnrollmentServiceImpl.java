@@ -1,9 +1,11 @@
 package com.company.coursemanagement.application.service.impl;
 
-import com.company.coursemanagement.application.dto.EnrollmentDTO;
+import com.company.coursemanagement.application.dto.CreateEnrollmentDTO;
+import com.company.coursemanagement.application.dto.response.EnrollmentResponseDto;
 import com.company.coursemanagement.application.service.EnrollmentService;
 import com.company.coursemanagement.domain.exception.BusinessException;
 import com.company.coursemanagement.domain.exception.CourseNotFoundException;
+import com.company.coursemanagement.domain.exception.EnrollmentAlreadyExistsException;
 import com.company.coursemanagement.domain.exception.EnrollmentNotFoundException;
 import com.company.coursemanagement.domain.exception.StudentNotFoundException;
 import com.company.coursemanagement.domain.model.Course;
@@ -18,7 +20,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
 
- @Service
+@Service
 public class EnrollmentServiceImpl implements EnrollmentService {
 
     private final EnrollmentRepository enrollmentRepository;
@@ -32,34 +34,41 @@ public class EnrollmentServiceImpl implements EnrollmentService {
     }
 
     @Override
-    public EnrollmentDTO enrollStudent(Long studentId, Long courseId) {
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new StudentNotFoundException(studentId));
+    public EnrollmentResponseDto enrollStudent(CreateEnrollmentDTO dto) {
+        Student student = studentRepository.findById(dto.studentId())
+                .orElseThrow(() -> new StudentNotFoundException(dto.studentId()));
 
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new CourseNotFoundException(courseId));
+        Course course = courseRepository.findById(dto.courseId())
+                .orElseThrow(() -> new CourseNotFoundException(dto.courseId()));
 
-        long activeCount = enrollmentRepository.countByCourse_IdAndStatus(courseId, EnrollmentStatus.ACTIVE);
+        boolean yaInscrito = enrollmentRepository.findEnrollmentsByStudentIdWithDetails(dto.studentId()).stream()
+                .anyMatch(e -> e.getCourseId().equals(dto.courseId()) && e.getStatus() == EnrollmentStatus.ACTIVE);
+        if (yaInscrito) {
+            throw new EnrollmentAlreadyExistsException(dto.studentId(), dto.courseId());
+        }
+
+        long activeCount = enrollmentRepository.countByCourse_IdAndStatus(dto.courseId(), EnrollmentStatus.ACTIVE);
         if (activeCount >= course.getMaxCapacity()) {
             throw new BusinessException("El curso ha alcanzado su capacidad máxima (" + course.getMaxCapacity() + ")");
         }
 
-        Enrollment enrollment = new Enrollment(null, student, course, LocalDate.now(), EnrollmentStatus.ACTIVE);
+        LocalDate enrollmentDate = dto.enrollmentDate() != null ? dto.enrollmentDate() : LocalDate.now();
+        Enrollment enrollment = new Enrollment(null, student, course, enrollmentDate, EnrollmentStatus.ACTIVE);
         Enrollment saved = enrollmentRepository.save(enrollment);
-        return toDTO(saved);
+        return EnrollmentResponseDto.from(saved);
     }
 
     @Override
-    public EnrollmentDTO findById(Long id) {
+    public EnrollmentResponseDto findById(Long id) {
         Enrollment enrollment = enrollmentRepository.findById(id)
                 .orElseThrow(() -> new EnrollmentNotFoundException(id));
-        return toDTO(enrollment);
+        return EnrollmentResponseDto.from(enrollment);
     }
 
     @Override
-    public List<EnrollmentDTO> findAll() {
+    public List<EnrollmentResponseDto> findAll() {
         return enrollmentRepository.findAll().stream()
-                .map(this::toDTO)
+                .map(EnrollmentResponseDto::from)
                 .toList();
     }
 
@@ -69,9 +78,5 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                 .orElseThrow(() -> new EnrollmentNotFoundException(id));
         enrollment.setStatus(EnrollmentStatus.CANCELLED);
         enrollmentRepository.save(enrollment);
-    }
-
-    private EnrollmentDTO toDTO(Enrollment enrollment) {
-        return new EnrollmentDTO(enrollment.getId(), enrollment.getStudentId(), enrollment.getCourseId(), enrollment.getEnrollmentDate(), enrollment.getStatus());
     }
 }
